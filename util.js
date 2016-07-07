@@ -21,10 +21,10 @@ var xeno = require('xenotype')()
 var fastseries = require('fastseries')({results: false})
 
 
-module.exports = function() {
+module.exports = function () {
 
-  var applyOverrides = function(system, config) {
-    _.each(_.keys(system.topology.containers), function(key) {
+  var applyOverrides = function (system, config) {
+    _.each(_.keys(system.topology.containers), function (key) {
       var container = system.topology.containers[key]
       if (config && config.overrides && config.overrides[container.name]) {
         if (config.overrides[container.name].run) {
@@ -53,7 +53,7 @@ module.exports = function() {
     })
   }
 
-  var compile = function(args, cb) {
+  var compile = function (args, cb) {
     var yamlPath = args[0] || process.cwd() + '/docker-compose.yml'
     var configPath = (path.dirname(args[0]) || process.cwd()) + '/fuge-config.js'
     var config = {}
@@ -71,14 +71,14 @@ module.exports = function() {
       fs.mkdirSync(config.logPath)
     }
 
-    xeno.compile(yamlPath, function(err, system) {
+    xeno.compile(yamlPath, function (err, system) {
       if (err) { return cb(err) }
       applyOverrides(system, config)
       cb(err, system, config)
     })
   }
 
-  var locateGenerator = function locateGenerator(name) {
+  var locateGenerator = function locateGenerator (name) {
     var gen = 'app'
     if (!/generator-/.test(name)) { name = 'generator-' + name }
 
@@ -93,7 +93,7 @@ module.exports = function() {
     )
   }
 
-  var runYo = function runYo(env, gen, opts, cb) {
+  var runYo = function runYo (env, gen, opts, cb) {
     var cwd = process.cwd()
     if (env.cwd) { process.chdir(env.cwd) }
 
@@ -103,11 +103,11 @@ module.exports = function() {
     })
   }
 
-  var series = function series(list, cb) {
+  var series = function series (list, cb) {
     return fastseries({}, list, undefined, cb)
   }
 
-  var inq = function inq(str, def, choices) {
+  var inq = function inq (str, def, choices) {
     if (Array.isArray(def)) {
       choices = def
       def = choices[0]
