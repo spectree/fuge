@@ -37,25 +37,26 @@ var MEDIUM = 2
 var HIGH = 3
 var FRAMEWORKS = ['hapi', 'express']
 
-module.exports = function(composeFile) {
+module.exports = function (composeFile) {
   var runYo = util.runYo
   var locateGenerator = util.locateGenerator
   var series = util.series
   var inq = util.inq
   var cwd = process.cwd()
-  //if a compose file was supplied, check if it exists,
-  //if not, throw an error
+
+  // if a compose file was supplied, check if it exists,
+  // if not, throw an error
   if (composeFile && !fs.existsSync(composeFile)) {
     throw Error('Cannot locate compose file', composeFile)
   }
 
-  //if no compose file supplied search for compose-dev.yml
-  //in ./fuge/compose-dev.yml, ./compose-dev.yml and ../fuge/compose-dev.yml paths
+  // if no compose file supplied search for compose-dev.yml
+  // in ./fuge/compose-dev.yml, ./compose-dev.yml and ../fuge/compose-dev.yml paths
   if (!composeFile) {
     composeFile = path.join(cwd, 'fuge', 'compose-dev.yml')
   }
 
-  function createEnv(args, opts) {
+  function createEnv (args, opts) {
     if (args && Object(args) === args && !Array.isArray(args)) {
       opts = args
       args = null
@@ -64,21 +65,21 @@ module.exports = function(composeFile) {
     opts = opts || {}
     var env = yeoman.createEnv(args, opts)
 
-    generators.forEach(function(gen) {
+    generators.forEach(function (gen) {
       env.register(locateGenerator(gen), gen)
     })
 
     return env
   }
 
-  var createServiceDefinition = function(name) {
+  var createServiceDefinition = function (name) {
     console.log('creating service def for', name)
     return ('\n__SERVICE__:\n' +
     '  build: ../__SERVICE__/\n' +
     '  container_name: __SERVICE__').replace(/__SERVICE__/g, name)
   }
 
-  var frameworkSelection = function frameworkSelection(label, opts) {
+  var frameworkSelection = function frameworkSelection (label, opts) {
     label = label || 'Web'
     opts = opts || {}
     var def = opts.def = opts.def || 'hapi'
@@ -92,7 +93,7 @@ module.exports = function(composeFile) {
     return framework
   }
 
-  var createService = function(srv, cwd, cb) {
+  var createService = function (srv, cwd, cb) {
     var name = srv.name
     var framework = srv.framework
     var appendToCompose = srv.appendToCompose
@@ -106,7 +107,7 @@ module.exports = function(composeFile) {
     runYo(env, 'fuge:service', {
       name: srv.name,
       framework: framework
-    }, function(err) {
+    }, function (err) {
       if (err) { return cb(err) }
       var definition = createServiceDefinition(name)
 
@@ -123,19 +124,15 @@ module.exports = function(composeFile) {
     })
   }
 
-  var defineService = function(label, interactivity, srv) {
+  var defineService = function (label, interactivity, srv) {
     return {
       name: (interactivity >= MEDIUM) && prompt(inq(label + ' name', srv.name)) || srv.name,
-      framework: (interactivity >= HIGH) ?
-        frameworkSelection(srv.name) :
-        srv.framework,
-      appendToCompose: (interactivity >= HIGH) ?
-        ask(inq('append ' + srv.name + ' to compose-dev.yml?:', ['y', 'n'])) :
-        srv.appendToCompose
+      framework: (interactivity >= HIGH) ? frameworkSelection(srv.name) : srv.framework,
+      appendToCompose: (interactivity >= HIGH) ? ask(inq('append ' + srv.name + ' to compose-dev.yml?:', ['y', 'n'])) : srv.appendToCompose
     }
   }
 
-  var generateService = function(args, interactive, cb) {
+  var generateService = function (args, interactive, cb) {
     args = args || {}
     var srv = {
       name: args.name || 'service' + (Math.random() * 1e17).toString(32).substr(6),
@@ -149,7 +146,7 @@ module.exports = function(composeFile) {
     createService(srv, path.join(process.cwd(), srv.name), cb)
   }
 
-  var determineInteractivity = function(i) {
+  var determineInteractivity = function (i) {
     if (typeof i === 'number') {
       return i
     }
@@ -171,7 +168,7 @@ module.exports = function(composeFile) {
     return LOW
   }
 
-  var generateServices = function(opts, cb) {
+  var generateServices = function (opts, cb) {
     var interactivity = opts.interactivity
     var cwd = opts.cwd
     var framework = opts.framework
@@ -200,8 +197,8 @@ module.exports = function(composeFile) {
       }
     }
 
-    services = services.map(function(service) {
-      return function(cb) {
+    services = services.map(function (service) {
+      return function (cb) {
         process.chdir(cwd)
         createService(service, cwd + path.sep + service.name, cb)
       }
@@ -212,7 +209,7 @@ module.exports = function(composeFile) {
 
     series(services, cb)
 
-    function genAPI(cb) {
+    function genAPI (cb) {
       fs.mkdirSync(cwd + '/api')
       var hapiEnv = createEnv({
         cwd: cwd + '/api'
@@ -221,7 +218,7 @@ module.exports = function(composeFile) {
       runYo(hapiEnv, 'fuge:rest', {
         name: 'api',
         framework: framework
-      }, function(err) {
+      }, function (err) {
         if (err) { return cb(err) }
         console.log('')
         console.log('system generated !!')
@@ -232,7 +229,7 @@ module.exports = function(composeFile) {
       })
     }
 
-    function genSite(cb) {
+    function genSite (cb) {
       fs.mkdirSync(cwd + '/site')
       var hapiEnv = createEnv({
         cwd: cwd + '/site'
@@ -241,7 +238,7 @@ module.exports = function(composeFile) {
       runYo(hapiEnv, 'fuge:static', {
         name: 'site',
         framework: framework
-      }, function(err) {
+      }, function (err) {
         if (err) { return cb(err) }
         console.log('')
         console.log('system generated !!')
@@ -253,7 +250,7 @@ module.exports = function(composeFile) {
     }
   }
 
-  var generateSystem = function(args, cb) {
+  var generateSystem = function (args, cb) {
     var cwd = process.cwd()
 
     if (args._.length) {
@@ -262,14 +259,14 @@ module.exports = function(composeFile) {
 
       try {
         fs.statSync(systemPath).isDirectory()
-        if(ask(inq('There is already a folder named ' + systemName + '. Do you want to override it?', ['y', 'n']))) {
+        if (ask(inq('There is already a folder named ' + systemName + '. Do you want to override it?', ['y', 'n']))) {
           fs.removeSync(systemPath)
         } else {
           systemName = prompt('New system folder name?(remember it\'s relative to the current path!)')
           systemPath = path.join(cwd, systemName)
         }
       } catch (err) {
-        if(err.code !== 'ENOENT') {
+        if (err.code !== 'ENOENT') {
           return cb(err)
         }
       }
@@ -280,9 +277,7 @@ module.exports = function(composeFile) {
 
     var interactivity = determineInteractivity(args.i)
 
-    var framework = (interactivity && interactivity <= MEDIUM) ?
-      frameworkSelection('Web') :
-      'hapi'
+    var framework = (interactivity && interactivity <= MEDIUM) ? frameworkSelection('Web') : 'hapi'
 
     var fuge = path.join(cwd, 'fuge')
     fs.mkdirsSync(fuge)
@@ -290,7 +285,7 @@ module.exports = function(composeFile) {
       cwd: fuge
     }), 'fuge', {
       name: 'fuge'
-    }, function(err) {
+    }, function (err) {
       if (err) { return cb(err) }
       generateServices({
         cwd: cwd,
